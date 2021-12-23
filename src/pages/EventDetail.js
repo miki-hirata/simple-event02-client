@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import { getRestaurant, getRestaurantReviews } from "../api.js";
-import { Breadcrumb, Loading, Pagination, Review } from "../components";
+import { getEvent, getEventComments } from "../api.js";
+import { Breadcrumb, Loading, Pagination, Comment, EventDetail } from "../components";
 
 function Form({ onSubmit }) {
   async function handleFormSubmit(event) {
@@ -46,18 +46,18 @@ function Form({ onSubmit }) {
     </form>
   );
 }
-
-function Restaurant({ restaurant, reviews, page, perPage }) {
+/* 
+function Event({ event, comments, page, perPage }) {
   return (
     <>
       <article className="box">
-        <h3 className="title is-5">{restaurant.name}</h3>
+        <h3 className="title is-5">{event.name}</h3>
         <div className="columns">
           <div className="column is-6">
             <figure className="image is-square">
               <img
-                src={restaurant.image || "/images/restaurants/noimage.png"}
-                alt={restaurant.name}
+                src={event.image || "/images/events/noimage.png"}
+                alt={event.name}
               />
             </figure>
           </div>
@@ -65,31 +65,31 @@ function Restaurant({ restaurant, reviews, page, perPage }) {
             <figure className="image is-square">
               <div
                 className="has-ratio"
-                dangerouslySetInnerHTML={{ __html: restaurant.map }}
+                dangerouslySetInnerHTML={{ __html: event.map }}
               ></div>
             </figure>
           </div>
         </div>
       </article>
       <div className="box">
-        {reviews.rows.length === 0 ? (
+        {comments.rows.length === 0 ? (
           <p>レビューがまだありません。</p>
         ) : (
           <>
             <div className="block">
-              <p>{reviews.count}件のレビュー</p>
+              <p>{comments.count}件のレビュー</p>
             </div>
             <div className="block">
-              {reviews.rows.map((review) => {
-                return <Review key={review.id} review={review} />;
+              {comments.rows.map((comment) => {
+                return <Comment key={comment.id} comment={comment} />;
               })}
             </div>
-            <div className="block">
+            <div className="bread_area">
               <Pagination
-                path={`/restaurants/${restaurant.id}`}
+                path={`/events/${event.id}`}
                 page={page}
                 perPage={perPage}
-                count={reviews.count}
+                count={comments.count}
               />
             </div>
           </>
@@ -98,10 +98,11 @@ function Restaurant({ restaurant, reviews, page, perPage }) {
     </>
   );
 }
+ */
 
-export function RestaurantDetailPage() {
-  const [restaurant, setRestaurant] = useState(null);
-  const [reviews, setReviews] = useState(null);
+export function EventDetailPage() {
+  const [event, setEvent] = useState(null);
+  const [comments, setComments] = useState(null);
 
   const params = useParams();
   const location = useLocation();
@@ -110,47 +111,53 @@ export function RestaurantDetailPage() {
   const page = +query.get("page") || 1;
 
   useEffect(() => {
-    getRestaurant(params.restaurantId).then((data) => {
-      setRestaurant(data);
+    getEvent(params.eventId).then((data) => {
+      setEvent(data);
     });
-  }, [params.restaurantId]);
+  }, [params.eventId]);
 
   useEffect(() => {
-    getRestaurantReviews(params.restaurantId, {
+    getEventComments(params.eventId, {
       limit: perPage,
       offset: (page - 1) * perPage,
     }).then((data) => {
-      setReviews(data);
+      setComments(data);
     });
-  }, [params.restaurantId, page]);
+  }, [params.eventId, page]);
 
   return (
     <>
-      <div className="box">
-        <Breadcrumb
-          links={[
-            { href: "/", content: "Top" },
-            { href: "/restaurants", content: "ラーメン店一覧" },
-            {
-              href: `/restaurants/${params.restaurantId}`,
-              content: restaurant && `${restaurant.name} の情報`,
-              active: true,
-            },
-          ]}
-        />
-      </div>
-      {restaurant == null || reviews == null ? (
-        <Loading />
-      ) : (
-        <Restaurant
-          restaurant={restaurant}
-          reviews={reviews}
+      <Breadcrumb
+        links={[
+          { href: "/", content: "トップページ" },
+          { href: "/events", content: "イベント一覧" },
+          {
+            href: `/events/${params.eventId}`,
+            content: event && `${event.name} `,
+            active: true,
+          },
+        ]}
+      />
+      <div className="event_section">
+        {event == null || comments == null ? (
+          <Loading />
+        ) : (
+          <EventDetail
+            event={event}
+            comments={comments}
+            page={page}
+            perPage={perPage}
+          />
+        )}
+        <div className="box">
+          <Form />
+        </div>
+        {/* <Pagination
+          path={`/events/${event.id}`}
           page={page}
           perPage={perPage}
-        />
-      )}
-      <div className="box">
-        <Form />
+          count={comments.count}
+        /> */}
       </div>
     </>
   );

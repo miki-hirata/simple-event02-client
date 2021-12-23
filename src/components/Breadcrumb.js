@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export function Breadcrumb({ links }) {
   return (
-    <nav className="breadcrumb">
+    <nav className="bread_area">
       <ul>
         {links.map(({ href, content, active }, i) => {
           return (
